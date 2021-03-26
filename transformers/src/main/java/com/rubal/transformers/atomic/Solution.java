@@ -1,5 +1,7 @@
 package com.rubal.transformers.atomic;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Solution {
 
     public static void main(String[] args) throws InterruptedException {
@@ -8,8 +10,8 @@ public class Solution {
         t1.start();
         Thread t2 = new Thread(pt, "t2");
         t2.start();
-        //t1.join();
-        //t2.join();
+        /*t1.join();
+        t2.join();*/
         System.out.println("Processing count=" + pt.getCount());
     }
 }
@@ -21,13 +23,15 @@ class ProcessingThread implements Runnable {
     public void run() {
         for (int i = 1; i < 5; i++) {
             //processSomething(i);
+            //count.getAndIncrement();
             count++;
+            System.out.println(Thread.currentThread()+" Incremented count: "+count);
         }
     }
 
     public int getCount() {
-        //return this.count.get();
         return this.count;
+        //return this.count.get();
     }
 
     private void processSomething(int i) {
