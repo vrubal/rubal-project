@@ -1,18 +1,25 @@
 package com.rubal.transformers.concurrent;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+@Slf4j
 public class CustomBlockingQueue<T>{
-    private final List<T> arr = new ArrayList<>();
-    private int limit = 1;
+    private final List<T> arr;
+    private int limit;
     private ReentrantLock lock = new ReentrantLock();
     private Condition addCond = lock.newCondition();
     private Condition removeCond = lock.newCondition();
 
-
+    public CustomBlockingQueue(List<T> arr, int limit){
+        this.arr = arr;
+        this.limit = limit;
+    }
     public void add(T elem){
 
         if(elem==null) return;
@@ -22,13 +29,11 @@ public class CustomBlockingQueue<T>{
                 addCond.await();
                 Thread.sleep(1000);
             }
-
-            System.out.println(Thread.currentThread() + " Adding element: "+elem);
+            log.info(Thread.currentThread() + " Adding element: "+elem);
             arr.add(elem);
             removeCond.signal();
-
         }catch (InterruptedException e){
-            //lock.unlock();
+            log.error("Exception occurred", e);
         }finally {
             lock.unlock();
         }
@@ -44,10 +49,10 @@ public class CustomBlockingQueue<T>{
                 Thread.sleep(1000);
             }
             t = arr.remove(0);
-            System.out.println(Thread.currentThread()+" Removed element: "+t);
+            log.info(Thread.currentThread()+" Removed element: "+t);
             addCond.signal();
         }catch (InterruptedException e){
-            //lock.unlock();
+            log.error("Exception occurred", e);
         }finally {
             lock.unlock();
         }
@@ -55,10 +60,11 @@ public class CustomBlockingQueue<T>{
     }
 
     public static void main(String[] args) {
-        CustomBlockingQueue<Integer> q = new CustomBlockingQueue<>();
+        CustomBlockingQueue<Integer> q = new CustomBlockingQueue<>(new ArrayList<>(), 10);
+        Random random = new Random();
         Runnable r1 = ()->{
             while(true) {
-                q.add(1);
+                q.add(random.nextInt(100));
             }
         };
         Runnable r2 = ()->{
@@ -67,8 +73,8 @@ public class CustomBlockingQueue<T>{
             }
         };
 
-        Thread t1 = new Thread(r1);
-        Thread t2 = new Thread(r2);
+        Thread t1 = new Thread(r1,"Producer");
+        Thread t2 = new Thread(r2,"Consumer");
         t1.start();t2.start();
     }
 

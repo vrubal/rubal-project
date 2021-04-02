@@ -2,6 +2,7 @@ package com.rubal.transformers.jdk;
 
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,6 +35,16 @@ public class   JavaGenerics {
     }
     public static void main(String[] args) {
 
+        List<? super Integer> list = new ArrayList<>();
+        list.add(new Integer(0));
+
+        for (Object o : list) {
+
+        }
+        /*List<? extends Object> list1 = new ArrayList<>();
+        for (String o : list1) {
+
+        }*/
         new Test(1,2,3,4,5);
         System.out.println(new Test(1,2,3,4,5));
         /*printL(Arrays.asList(1,2,3,4,5));

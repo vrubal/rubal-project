@@ -14,7 +14,6 @@ public class TestStreams {
     static String local="test";
     public static void main(String[] args) {
         List<Integer> nums = Arrays.asList(1, 2, 2, 4, 4, 1);
-        nums.stream().spliterator();
         int multi=10;
         Stream<Integer> integerStream = nums.parallelStream();
         Supplier<Stream<Integer>> supplier = ()->nums.stream();
