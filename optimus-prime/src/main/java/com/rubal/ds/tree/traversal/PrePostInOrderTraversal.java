@@ -1,5 +1,7 @@
 package com.rubal.ds.tree.traversal;
 
+import java.util.Stack;
+
 public class PrePostInOrderTraversal {
 
     public static void inorderTraversal_R(TreeNode root){
@@ -11,6 +13,67 @@ public class PrePostInOrderTraversal {
         }
     }
 
+    public static void inorderTraversal_NR(TreeNode root){
+        Stack<TreeNode> s = new Stack<>();
+        while(root!=null || !s.isEmpty()){
+            while(root != null){
+                s.push(root);
+                root=root.left;
+            }
+            root=s.pop();
+            System.out.println(root.data);
+            s.push(root.right);
+        }
+    }
+    public static void inorderTraversalMorris(TreeNode root){
+        TreeNode pre=null;
+        TreeNode curr = root;
+
+        while(curr != null){
+            if(curr.left == null){
+                System.out.println(curr.data);
+                curr = curr.right;
+            }else{
+                pre = curr.left;
+                while(pre.right != null && pre.right != curr){
+                    pre=pre.right;
+                }
+                if(pre.right == null){
+                    pre.right = curr;
+                    curr = curr.left;
+                }else{
+                    pre.right = null;
+                    System.out.println(curr.data);
+                    curr = curr.right;
+                }
+            }
+        }
+    }
+
+    public static void postOrderTraversalMorris(TreeNode root){
+        TreeNode pre=null;
+        TreeNode curr = root;
+
+        while(curr != null){
+            if(curr.left == null){
+                System.out.println(curr.data);
+                curr = curr.right;
+            }else{
+                pre = curr.left;
+                while(pre.right != null && pre.right != curr){
+                    pre=pre.right;
+                }
+                if(pre.right == null){
+                    pre.right = curr;
+                    curr = curr.left;
+                }else{
+                    pre.right = null;
+                    System.out.println(curr.data);
+                    curr = curr.right;
+                }
+            }
+        }
+    }
     public static void preTraversal_R(TreeNode root){
 
         if(root!=null){
@@ -37,10 +100,10 @@ public class PrePostInOrderTraversal {
         TreeNode right = new TreeNode(4, null, right1);
         TreeNode root = new TreeNode(3, left,right);
 
-        inorderTraversal_R(root);
+        /*inorderTraversal_R(root);
         System.out.println();
         preTraversal_R(root);
         System.out.println();
-        postTraversal_R(root);
+        postTraversal_R(root);*/
     }
 }

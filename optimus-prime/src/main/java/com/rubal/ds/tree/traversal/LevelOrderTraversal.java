@@ -1,6 +1,8 @@
 package com.rubal.ds.tree.traversal;
 
 
+import sun.reflect.generics.tree.Tree;
+
 import java.util.ArrayDeque;
 import java.util.Queue;
 
@@ -53,7 +55,21 @@ public class LevelOrderTraversal {
             }
         }
     }
+    public static void reverseLevelOrder(TreeNode root, int h){
+        for (int i = h; i >0; i--) {
+            reverseLevelOrder_r(root, i);
+            System.out.println("");
+        }
+    }
+    public static void reverseLevelOrder_r(TreeNode root, int h){
 
+        if(h==1){
+            System.out.print(root.data+" ");
+        }else {
+            reverseLevelOrder(root.left, h-1);
+            reverseLevelOrder(root.right, h-1);
+        }
+    }
     private static void pushChild(TreeNode node, Queue<TreeNode> queue) {
         if(null != node.getLeft()){
             queue.add(node.getLeft());
@@ -73,6 +89,8 @@ public class LevelOrderTraversal {
 
         //System.out.println(height(new TreeNode(2, new TreeNode(1,null,null) , new TreeNode(3,null,null))));
         //levelOrderTraversal(new TreeNode(2, new TreeNode(1,null,null) , new TreeNode(3,null,null)));
-        levelOrderTraversal_R(new TreeNode(2, new TreeNode(1,null,null) , new TreeNode(3,null,null)));
+        //levelOrderTraversal_R(new TreeNode(2, new TreeNode(1,null,null) , new TreeNode(3,null,null)));
+        reverseLevelOrder(new TreeNode(2, new TreeNode(1,null,null) , new TreeNode(3,null,null)), 2);
+
     }
 }
