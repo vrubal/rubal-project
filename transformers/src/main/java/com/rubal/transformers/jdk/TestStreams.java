@@ -4,6 +4,7 @@ import com.rubal.ds.thread.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -33,7 +34,7 @@ public class TestStreams {
         System.out.println("Parallel Stream");
         List<Integer> numrs = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8);
         numrs.stream().skip(8).forEach((t)->{System.out.println(t +"Thread:"+Thread.currentThread());});
-
+        //numrs.stream().filter(Optional::isPresent).findFirst()
 
         //spliterator
         System.out.println("Spliteratoer");
