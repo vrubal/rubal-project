@@ -1,5 +1,7 @@
 package com.rubal.ds.thread;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -12,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class OddEvenPrinter {
 
     public static void main(String[] args) throws Exception {
-        Integer number = 0;
+        List<Integer> numbers = new ArrayList<>();
         //int i = 0;
         ReentrantLock lock = new ReentrantLock();
         Condition oddCondition = lock.newCondition();
@@ -21,12 +23,14 @@ public class OddEvenPrinter {
             int i=0;
             while(true){
                 try {
-                    synchronized (number){
-                        number.wait();
-                        Thread.sleep(1000);
-
-                        System.out.println("odd:"+i++);
-                        number.notify();
+                    synchronized (numbers){
+                        while(numbers.size()%2 == 0 ) {
+                            numbers.wait();
+                            Thread.sleep(1000);
+                        }
+                        System.out.println("odd:"+numbers.size());
+                        numbers.add(i++);
+                        numbers.notify();
                     }
                 }catch (Exception e){
                     e.printStackTrace();
@@ -38,14 +42,14 @@ public class OddEvenPrinter {
             int i=0;
             while(true){
                 try {
-                    synchronized (number){
-
-                        number.wait();
-                        Thread.sleep(1000);
-
-
-                        System.out.println("Even:"+i++);
-                        number.notify();
+                    synchronized (numbers){
+                        while(numbers.size()%2 != 0 ) {
+                            numbers.wait();
+                            Thread.sleep(1000);
+                        }
+                        System.out.println("Even:"+numbers.size());
+                        numbers.add(i++);
+                        numbers.notify();
                     }
                 }catch (Exception e){
                     e.printStackTrace();
