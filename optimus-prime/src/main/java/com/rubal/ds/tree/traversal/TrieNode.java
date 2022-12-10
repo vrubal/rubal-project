@@ -2,16 +2,17 @@ package com.rubal.ds.tree.traversal;
 
 import lombok.*;
 
+import java.util.List;
 
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode
-public class TreeNode {
+public class TrieNode {
     @NonNull
     int data;
-    TreeNode left;
-    TreeNode right;
+    int cost;
+    @NonNull
+    List<TrieNode> children;
 }
