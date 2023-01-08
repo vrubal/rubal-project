@@ -6,6 +6,6 @@ import lombok.*;
 @Getter
 @RequiredArgsConstructor
 public class Node {
-    @NonNull private int data;
-    private Node next;
+    @NonNull public int data;
+    public Node next;
 }
