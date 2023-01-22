@@ -26,7 +26,7 @@ public class DiagonalTraversal {
                           5    10
                          4  6 9  11
          */
-       /* TreeNode root = new TreeNode(8);
+        TreeNode root = new TreeNode(8);
         TreeNode left = new TreeNode(5);
         TreeNode right = new TreeNode(10);
         left.left=new TreeNode(4);
@@ -35,14 +35,10 @@ public class DiagonalTraversal {
         right.right = new TreeNode(11);
         root.right=right;
         root.left=left;
+        map.values().forEach(e->new ArrayList().add(e));
         //for (int i = 1; i <= 3; i++) {
             printDiagonal(root, 1 );
             System.out.println();
-        //}*/
-        map2.put(1,2);
-        map2.put(2,2);
-        map2.put(0,1);
-//        Arrays.
-//        List<Integer> collect = new ArrayList<Integer>(map2.values().stream().filter(e->e>1).collect(Collectors.toList()));
+        //}
     }
 }

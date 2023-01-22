@@ -14,10 +14,7 @@ public class LargestPerLevel {
         if(root==null)
             return;
         if(!map.containsKey(lvl))
-            map.computeIfPresent(lvl, (o, n) ->{
-                System.out.println(o+" "+ n);
-                return null;
-            });
+            map.put(lvl, root.data);
         else {
             if(map.containsKey(lvl) && map.get(lvl) < root.data)
                 map.put(lvl, root.data);
@@ -25,6 +22,7 @@ public class LargestPerLevel {
         findLargetPerRow(root.left, map, lvl++);
         findLargetPerRow(root.right,map, lvl++);
     }
+
 
     public static void main(String[] args) {
 
