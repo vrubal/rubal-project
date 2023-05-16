@@ -23,6 +23,20 @@ public class CoinChange {
 
         return count(coins, N, sum - coins[N - 1]);
     }
+    public static int countMinCoins(int amount, int[] coins) {
+        if(amount == 0 ){
+            return 0;
+        }
+        int count = Integer.MAX_VALUE;
+        for (int i = 0; i < coins.length; i++) {
+            if(amount-coins[i] >= 0) {
+                int subCount = countMinCoins(amount-coins[i], coins);
+                if(subCount != Integer.MAX_VALUE && subCount+1 < count)
+                    count = subCount+1;
+            }
+        }
+        return count;
+    }
     public static void allPossibleWays(int amount, int[] coins, List<Integer> tList, List<List<Integer>> finalList) {
         if(amount == 0 && tList.size() < min){
             List<Integer> t = new ArrayList<>();
@@ -38,9 +52,28 @@ public class CoinChange {
             }
         }
     }
+    public static int countPossibleWays(int amount, int[] coins, List<Integer> tList, List<List<Integer>> finalList) {
+        if(amount == 0 ){
+            System.out.println(tList);
+            return 1;
+        }
+        int count = 0;
+        for (int i = 0; i < coins.length; i++) {
+            if(amount-coins[i] >= 0) {
+                tList.add(coins[i]);
+                int subCount = countPossibleWays(amount-coins[i], coins, tList, finalList);
+                tList.remove(tList.size()-1);
+
+                count = count + subCount;
+            }
+        }
+        return count;
+    }
     public static int changeHelper(int amount, int[] coins, int currentIndex, int[][] dp) {
 
-        if(amount == 0) return 1;
+        if(amount == 0) {
+            return 1;
+        }
         if (amount < 0 || currentIndex >= coins.length) return 0;
         if(dp[currentIndex][amount] == -1) {
 
@@ -66,7 +99,9 @@ public class CoinChange {
             }
         }*/
         List<List<Integer>> list = new ArrayList<>();
-        allPossibleWays(n, arr, new ArrayList<>(),list);
+        //allPossibleWays(n, arr, new ArrayList<>(),list);
+        //System.out.println(countMinCoins(n, arr));
+        System.out.println(countPossibleWays(n, arr, new ArrayList<>(), null));
         list.stream().forEach(System.out::println);
 
     }
