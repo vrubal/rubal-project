@@ -23,9 +23,9 @@ public class OddEvenPrinter {
                         Thread.sleep(1000);
 
                     }
-                    System.out.println(Thread.currentThread()+":"+ count.get());
+                    System.out.println(Thread.currentThread().getName()+":"+ count.get());
                     count.getAndIncrement();
-                    odd.signal();
+                    zero.signal();
                 }
             }catch (Exception e){
                 e.printStackTrace();
@@ -41,9 +41,9 @@ public class OddEvenPrinter {
                         odd.await();
                         Thread.sleep(1000);
                     }
-                    System.out.println(Thread.currentThread()+":"+ count.get());
+                    System.out.println(Thread.currentThread().getName()+":"+ count.get());
                     count.getAndIncrement();
-                    even.signal();
+                    zero.signal();
                 }
             }catch (Exception e){
                 e.printStackTrace();
@@ -58,7 +58,7 @@ public class OddEvenPrinter {
                 while (true) {
                     zero.await();
                     Thread.sleep(1000);
-                    System.out.println(Thread.currentThread()+":"+ 0);
+                    System.out.println(Thread.currentThread().getName()+":"+ 0);
                     if(count.get()%2==0)
                         even.signal();
                     else
@@ -76,11 +76,8 @@ public class OddEvenPrinter {
         Thread t3 = new Thread(zr, "zero");
 
         t.start();
-        //t3.start();
+        t3.start();
         t2.start();
-
-
-
     }
 
 }
