@@ -5,7 +5,6 @@ package com.rubal.transformers.jdk;
  * @created
  * @project rubal-project
  */
-@FunctionalInterface
 public interface MyFunctionalInterface {
     default <T> T test1(T t){
         return null;

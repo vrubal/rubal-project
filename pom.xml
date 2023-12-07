@@ -12,7 +12,8 @@
 		<module>optimus-prime</module>
 		<module>bumble-bee</module>
 		<module>transformers</module>
-	</modules>
+        <module>juno</module>
+    </modules>
 	<groupId>com.rubal.change</groupId>
 	<artifactId>rubal-project</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -21,14 +22,17 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<java.version>8</java.version>
+		<java.version>11</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-jpa</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

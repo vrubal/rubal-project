@@ -6,7 +6,9 @@ package com.rubal.transformers.concurrent;
  * @project rubal-project
  */
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -69,7 +71,6 @@ public class ConcurrentHashMap<K, V> {
             lock.unlock();
         }
     }
-
     public void remove(K key) {
         int bucketIndex = getBucketIndex(key);
         Lock lock = locks.get(bucketIndex);
@@ -160,5 +161,19 @@ public class ConcurrentHashMap<K, V> {
         public void setValue(V value) {
             this.value = value;
         }
+    }
+
+    public static void main(String[] args) {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("one", 1);
+        map.put("one1", 2);
+        map.put("one2", 3);
+        map.put("one3", 4);
+        map.put("two1", 3);
+        map.put("two2", 4);
+        map.put("two3", 5);
+        map.put("two4", 6);
+        map.entrySet().stream().forEach(System.out::println);
+
     }
 }

@@ -43,8 +43,8 @@ public class DeadLocks {
 
         t.start();
         t2.start();
-        t.join();
-        t2.join();
+        /*t.join();
+        t2.join();*/
     }
 
 }

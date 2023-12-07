@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class OddEvenPrinter {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         final AtomicInteger count = new AtomicInteger(1);
         ReentrantLock lock = new ReentrantLock();
         Condition even = lock.newCondition();
@@ -78,6 +78,9 @@ public class OddEvenPrinter {
         t.start();
         t3.start();
         t2.start();
+        t.join();
+        t2.join();
+        t3.join();
     }
 
 }

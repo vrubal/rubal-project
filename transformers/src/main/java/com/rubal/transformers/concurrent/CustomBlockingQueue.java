@@ -3,10 +3,13 @@ package com.rubal.transformers.concurrent;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
 
 @Slf4j
 public class CustomBlockingQueue<T>{
@@ -72,7 +75,7 @@ public class CustomBlockingQueue<T>{
                 q.remove();
             }
         };
-
+        Arrays.stream(new int[]{1,2,3,4}).map(operand -> operand*10).forEach(System.out::println);
         Thread t1 = new Thread(r1,"Producer");
         Thread t2 = new Thread(r2,"Consumer");
         t1.start();t2.start();
