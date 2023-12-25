@@ -9,17 +9,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class VolatileVsAtomic {
     static class UnsafeCounter {
-        private volatile AtomicInteger counter;
+        private volatile int counter;
 
         public UnsafeCounter() {
-            this.counter = new AtomicInteger();
+            this.counter = 0;
         }
 
-        int getValue() {
-            return counter.get();
+        synchronized int getValue() {
+            return counter;
         }
-        void increment() {
-            counter.getAndIncrement();
+        synchronized void  increment() {
+            counter++;
         }
     }
 
