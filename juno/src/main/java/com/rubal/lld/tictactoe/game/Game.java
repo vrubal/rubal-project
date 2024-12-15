@@ -17,8 +17,6 @@ public class Game {
         while(true){
             board.display();
             Player p = board.queue.poll();
-            int i = System.in.read();
-            int j = System.in.read();
         }
     }
 }

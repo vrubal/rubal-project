@@ -85,7 +85,7 @@ public class ConsistentHashingRing {
 
         System.out.println("After removing Node-1 keyMap");
         System.out.println(hashingRing.keysMap);
-
+        System.out.println(hashingRing.getNode("Key-3"));
     }
 
     private void addKey(String key) {
