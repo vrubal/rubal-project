@@ -2,9 +2,7 @@ package com.rubal.transformers.jdk;
 
 import com.rubal.ds.thread.Test;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -13,6 +11,7 @@ import java.util.stream.Stream;
 public class TestStreams {
     static String field="test";
     static String local="test";
+
     public static void main(String[] args) {
         List<Integer> nums = Arrays.asList(1, 2, 2, 4, 4, 1);
         int multi=10;
@@ -40,6 +39,8 @@ public class TestStreams {
         System.out.println("Spliteratoer");
         List<Integer> numSplit= Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8);
         //nums.stream().flatMap();
+        Map<Integer, Integer> map = new HashMap<>();
+        //map.entrySet().stream().sorted(Map.Entry.comparingByValue()).collect(Comparator.naturalOrder());
 
     }
 

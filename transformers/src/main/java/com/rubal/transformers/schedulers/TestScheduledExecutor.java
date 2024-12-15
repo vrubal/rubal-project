@@ -1,7 +1,10 @@
 package com.rubal.transformers.schedulers;
 
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 import java.util.concurrent.*;
 
+@SpringBootApplication
 public class TestScheduledExecutor {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
