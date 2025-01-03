@@ -6,3 +6,26 @@ Sliding window:
     3. Counting string/subarray matching certain condition. i.e counting subarray with total sum is k.
     4. Minimum window length satisfying certain condition.
 
+Binary Seach:
+    1. Apply binary search on the input array.
+          i. Finding x element in array with applied conditions.
+    2. Apply binary seach on answer.
+          i. Find best possible ans which satisfies certain conditions.
+
+Dynamic Programming:
+  Steps to follow:
+    a. Represent problem in terms of index
+    b. Identify operations on index
+    c. Perform all possible operations on indexes
+    d. count/min/max of all possible operation performed
+      i.   count: in-case question ask tolal number of all possible ways.
+      ii.  min: in-case question ask minimum of all possible ways
+      iii. max: in-case question ask maximum of all possible ways.
+  Type of problems in DP
+      1. 1DP
+      2. DP on grids
+      3. DP on subsequences
+      4. DP on string
+      5. DP on stocks
+      6. DP on LIS
+
