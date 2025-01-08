@@ -28,4 +28,12 @@ Dynamic Programming:
       4. DP on string
       5. DP on stocks
       6. DP on LIS
-
+ 
+Graph:
+    Depth First Search uses recursion
+    Breadth First Search using Queue
+    Cycle detection
+    Topological sort : Using DFS recurstion or Indegree/OutDegree array
+    Distance source to destination: using Queue 
+    Shortest Path : Using BFS and priority Queue    
+    Disjoint Set
