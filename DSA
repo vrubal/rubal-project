@@ -36,4 +36,6 @@ Graph:
     Topological sort : Using DFS recurstion or Indegree/OutDegree array
     Distance source to destination: using Queue 
     Shortest Path : Using BFS and priority Queue    
-    Disjoint Set
+    Disjoint Set: Used for a dynamic graph generally refers to a graph that keeps on changing its configuration.  
+                  Rank: Distance between fartest leaf node
+                  Size: Number of children in a group
