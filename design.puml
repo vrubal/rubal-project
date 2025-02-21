@@ -1,0 +1,48 @@
+@startuml
+
+' Define system components
+package "Client Applications" {
+    actor Client
+}
+
+package "Router Layer" {
+    component API_Gateway as "ESF Router Gateway"
+    Client --> API_Gateway : Sends API Request
+}
+
+package "Event Streaming" {
+    component Kafka as "Kafka Broker"
+    component ClientRequests as "client_requests (Topic)"
+    component AggregatedRequests as "aggregated_client_requests (Topic)"
+
+    API_Gateway --> ClientRequests : Publishes Event
+    Kafka --> ClientRequests
+    Kafka --> AggregatedRequests
+}
+
+package "Stream Processing" {
+    component KafkaStreams as "Kafka Streams Processor"
+    ClientRequests --> KafkaStreams : Reads & Aggregates
+    KafkaStreams --> AggregatedRequests : Publishes Aggregated Data
+}
+
+package "Storage Layer" {
+    component Database as "Database (PostgreSQL)"
+    component ConsumerService as "Consumer Service"
+
+    AggregatedRequests --> ConsumerService : Consumes Data
+    ConsumerService --> Database : Stores Aggregated Data
+}
+
+package "Backend API" {
+    component BackendAPI as "Management API"
+    Database --> BackendAPI : Fetches Aggregated Data
+}
+
+package "Dashboard" {
+    component Frontend as "ESF Studio Dashboard (React)"
+    BackendAPI --> Frontend : Serves Data
+    Client --> Frontend : Views Dashboard
+}
+
+@enduml
