@@ -1,0 +1,36 @@
+Isolation       | Safe for Banking? | Why
+READ_COMMITTED  | ❌               | Only prevents dirty reads. No real protection.
+REPEATABLE_READ | ⚠️ Better        | Prevents dirty and non-repeatable reads. Still can have phantom problems.
+SERIALIZABLE    | ✅ Best          | Full isolation. No dirty reads, non-repeatable reads, lost updates, or phantoms.
+
+
+❗ Why READ_COMMITTED is not enough
+
+Problem                             | What Happens at READ_COMMITTED
+🔥 Lost Update                      | Two users read the same balance and overwrite each other's update.
+🔥 Non-repeatable Read              | Balance changes between reads inside the same transaction.
+🔥 No guarantee of real consistency | You can accidentally deduct more than available, or double credit.
+
+[ API Layer (REST) ]
+         │
+         ▼
+[ Transaction Service ]
+     - Start Transaction (DB tx)
+     - Lock Accounts (SELECT FOR UPDATE)
+     - Validate Balances
+     - Perform Debit/Credit
+     - Insert Ledger Entry
+     - Commit
+         │
+         ▼
+[ Retry Layer (Optional) ]
+     - If serialization failure (409 error)
+     - Retry up to 3-5 times
+         │
+         ▼
+[ Event Publishing (Kafka/RabbitMQ) ]
+     - "Money Moved" Event (for notifications, audit, downstream sync)
+         │
+         ▼
+[ Ledger DB ]
+     - Final Immutable record (append-only)
