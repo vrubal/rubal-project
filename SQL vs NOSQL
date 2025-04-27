@@ -1,1 +1,31 @@
+Data stored in the colum fashion:
 
+Column id: [1, 2, 3, ...]
+Column name: [Alice, Bob, Charlie, ...]
+Column age: [25, 30, 22, ...]
+Column city: [NYC, LA, SF, ...]
+
+
+Why use a Columnar database?
+
+Super fast for analytics: If you run a query like SELECT avg(age), a columnar database just reads the age column — not the whole table.
+
+Great for compression: Same-type data (like many ages) compresses very well.
+
+Efficient for read-heavy operations: Especially with big data or reporting tools.
+
+
+Wide Column Databse:
+Cassandra:
+  1. SQL Like interface
+  2. Write heavy use case
+  3. Highly available
+  4. Fault Tolerant
+  5. Simple query pattern
+  6. Schema less tables
+  7. No complex query
+  8. No referential integrity
+  9. No Joins
+Use Cases:
+  Log ingetion
+  Monitoring Events 
