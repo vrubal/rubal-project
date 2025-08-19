@@ -3,7 +3,9 @@ Sliding window:
   Patterns:
     1. Constant window size k, where window of size k traverse ahead till end. e.g. maximum sum of k consecutive elements in an array.
     2. Longest substring/subarray e.g pattern matching.
-    3. Counting string/subarray matching certain condition. i.e counting subarray with total sum is k.
+    3. Counting string/subarray matching certain condition. 
+        i. counting subarray with total sum is k.
+        ii. Count number of substring : https://www.geeksforgeeks.org/problems/count-number-of-substrings4528
     4. Minimum window length satisfying certain condition.
 
 Binary Seach:
