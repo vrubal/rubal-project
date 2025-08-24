@@ -1,18 +1,40 @@
-Sliding window:
-  Two pointer algorithm with complexity O(N)
-  Patterns:
-    1. Constant window size k, where window of size k traverse ahead till end. e.g. maximum sum of k consecutive elements in an array.
-    2. Longest substring/subarray e.g pattern matching.
-    3. Counting string/subarray matching certain condition. 
-        i. counting subarray with total sum is k.
-        ii. Count number of substring : https://www.geeksforgeeks.org/problems/count-number-of-substrings4528
-    4. Minimum window length satisfying certain condition.
+📌 Core Patterns
+1. Fixed Window Size (k)
+    Window size is constant.
+    Slide from left to right.
+    Maintain running sum/aggregate.
 
-Binary Seach:
-    1. Apply binary search on the input array.
-          i. Finding x element in array with applied conditions.
-    2. Apply binary seach on answer.
-          i. Find best possible ans which satisfies certain conditions.
+    Examples:
+      Maximum/Minimum sum of k consecutive elements.
+      Average of every k-length subarray.
+      Maximum number of 1s in a window of size k.
+
+2. Longest Window / Substring
+    Window size is variable, expand and shrink using two pointers.
+    Condition decides when to shrink.
+
+  Examples:
+    Longest substring without repeating characters.
+    Longest subarray with at most K distinct elements.
+    Pattern matching in substring.
+
+3. Counting Windows/Subarrays Matching Condition
+    Count how many windows satisfy a property.
+    Often uses map + prefix sum + hashing.
+    Examples:
+      Count subarrays with sum = K.
+      Count substrings with exactly K distinct characters.
+      GeeksforGeeks problem
+       (Count substrings with same first & last character).
+
+4. Minimum Window / Smallest Subarray
+    Find shortest subarray/substring satisfying a condition.
+    Expansion until condition met, then shrink.
+
+    Examples:
+      Minimum window substring containing all characters of another string.
+      Smallest subarray with sum ≥ K.
+      Shortest substring with all vowels.
 
 Dynamic Programming:
   Steps to follow:
