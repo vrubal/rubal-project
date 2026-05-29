@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author vrubal
@@ -16,17 +17,12 @@ public class SampleClass {
     public static void main(String[] args) {
         int [] a = new int[]{2,4,5,25,625};
         Set<Integer> set = new HashSet<>();
-        Arrays.stream(a).forEach(set::add);
-        int max = Integer.MIN_VALUE;
-        for(int i=0;i<a.length;i++){
-            int count = 0;
-            int num = a[i];
-            while(set.contains(num)){
-                count++;
-                num=num*num;
-            }
-            max=Math.max(max,count);
-        }
-        System.out.println(max);
+        List<Integer> collect = Stream.of(1, 2, 3, 4).filter(e->e%2==0).
+                collect(Collectors.toList());
+        List<Integer> collect2 = Stream.of(1, 2, 3, 4).filter(e->e%2==0).toList();
+        System.out.println(collect);
+        System.out.println(collect2);
+
+
     }
 }
