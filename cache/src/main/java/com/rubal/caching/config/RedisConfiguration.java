@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
@@ -83,7 +84,7 @@ public class RedisConfiguration implements CachingConfigurer {
      *  - Caching pool will have as name {application.name}-caching-spring
      *  - Indexing pool will have as name {application.name}-indexing
      */
-    private final String clientName;
+    private String clientName;
 
     /**
      * Maximum number of active connections that can be allocated.
@@ -182,7 +183,7 @@ public class RedisConfiguration implements CachingConfigurer {
     private int cbPermittedCallsHalfOpen;
 
     public RedisConfiguration(Environment environment) {
-        clientName = ApplicationNameIdentifier.applicationName(environment);
+        //clientName = ApplicationNameIdentifier.applicationName(environment);
     }
 
     /**
@@ -227,9 +228,40 @@ public class RedisConfiguration implements CachingConfigurer {
     }
 
     /**
-     * Library-provided default configuration for the {@code redisCache} circuit breaker. Consuming
-     * applications can still override any of these via {@code resilience4j.circuitbreaker.instances.redisCache.*}
-     * properties, which take precedence over this programmatic customizer.
+     * Library-provided {@link CircuitBreakerRegistry} guarding Redis access.
+     * <p>
+     * Defining the registry here makes the caching library self-contained: it no longer depends on
+     * Resilience4j's Spring Boot auto-configuration being present (or enabled) in the consuming
+     * application. The breaker config is built from the {@code spring.redis.resilient.circuit-breaker.*}
+     * properties and installed as the registry's default configuration so the single shared
+     * {@code redisCache} breaker resolved by {@link ResilientCacheManager} uses it.
+     * <p>
+     * Marked {@link ConditionalOnMissingBean} so an application that already exposes its own
+     * {@code CircuitBreakerRegistry} (for example via the Resilience4j starter) keeps full control.
+     *
+     * @return the circuit-breaker registry for the {@code redisCache} breaker
+     */
+    @Bean
+    @ConditionalOnMissingBean(CircuitBreakerRegistry.class)
+    public CircuitBreakerRegistry circuitBreakerRegistry() {
+        CircuitBreakerConfig redisCacheConfig = CircuitBreakerConfig.custom()
+                .failureRateThreshold(cbFailureRateThreshold)
+                .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
+                .slidingWindowSize(cbSlidingWindowSize)
+                .minimumNumberOfCalls(cbMinimumNumberOfCalls)
+                .waitDurationInOpenState(Duration.ofSeconds(cbWaitDurationOpenSeconds))
+                .permittedNumberOfCallsInHalfOpenState(cbPermittedCallsHalfOpen)
+                .automaticTransitionFromOpenToHalfOpenEnabled(true)
+                .build();
+        return CircuitBreakerRegistry.of(redisCacheConfig);
+    }
+
+    /**
+     * Library-provided default configuration for the {@code redisCache} circuit breaker, applied when
+     * the consuming application supplies its own {@link CircuitBreakerRegistry} via Resilience4j's
+     * Spring Boot auto-configuration. Applications can still override any of these via
+     * {@code resilience4j.circuitbreaker.instances.redisCache.*} properties, which take precedence
+     * over this programmatic customizer.
      *
      * @return a circuit-breaker config customizer for the {@code redisCache} instance
      */
