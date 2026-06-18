@@ -1,0 +1,102 @@
+@startuml
+title Multi-Tier Caching Architecture\nRedis GET → CSC transparent → Caffeine fallback → DB
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam nodesep 50
+skinparam ranksep 40
+
+actor "Application\n(Spring Service)" as App
+
+package "Container / Pod" #F5F5F5 {
+
+    component "Spring Cache Abstraction\n(@Cacheable / @CachePut / @CacheEvict)" as SpringCache
+
+    component "Circuit Breaker\n(Resilience4j / Custom)" as CB
+    note right of CB
+        **CLOSED** → Redis reachable
+        **OPEN** → Redis DOWN, fallback
+        **HALF_OPEN** → probe Redis
+    end note
+
+    package "Jedis Client (with CSC)" #E3F2FD {
+        component "Redis GET(key)" as RedisGet
+        component "Client-Side Cache\n(CSC - JVM local)" as CSC
+        note bottom of CSC
+            - Transparent to application
+            - Auto-populated on GET response
+            - Invalidated by Redis SERVER
+              via CLIENT TRACKING
+        end note
+    }
+
+    package "Fallback Cache" #E8F5E9 {
+        component "Caffeine\n(In-Memory Heap)" as Caffeine
+        note bottom of Caffeine
+            - Used ONLY when Redis is DOWN
+            - Populated alongside Redis writes
+            - TTL + max-size eviction
+            - Serves stale data in degraded mode
+        end note
+    }
+
+    component "Pub/Sub Listener\n(Invalidation)" as PubSub
+}
+
+package "Redis Cluster" #FFF3E0 {
+    component "Redis Server" as Redis
+    component "Pub/Sub Channel" as Channel
+}
+
+database "Database\n(Source of Truth)" as DB
+
+package "Other Container / Pod" #F5F5F5 {
+    component "App Instance B" as AppB
+}
+
+' === NORMAL READ FLOW (Circuit CLOSED) ===
+App -down-> SpringCache : @Cacheable get(key)
+SpringCache -down-> CB : route
+
+CB -down-> RedisGet : Redis GET(key)
+RedisGet -right-> CSC : check CSC
+
+CSC -[#007700,bold]up-> RedisGet : **CSC HIT**\nreturn locally\n(NO network call)
+
+CSC -[#grey,bold]down-> Redis : **CSC MISS**\nGO to Redis Server\n(network call)
+Redis -[#007700,bold]up-> CSC : response →\nauto-populate CSC
+
+' === FALLBACK (Circuit OPEN - Redis DOWN) ===
+CB -[#red,bold]-> Caffeine : **Redis DOWN**\n(circuit OPEN)\ncheck Caffeine
+Caffeine -[#green,bold]-> App : **Caffeine HIT**\nreturn stale data\n(degraded mode)
+Caffeine -[#red,bold]-> DB : **Caffeine MISS**\nfallback to DB
+
+' === CACHE MISS ALL LAYERS (normal flow) ===
+Redis -[#grey,dashed]down-> DB : **Redis MISS**\nfetch from DB
+DB -[#007700,dotted]up-> Redis : populate Redis\n(SET + TTL)
+
+' === WRITE PATH ===
+App -[#blue]-> Redis : @CachePut\nwrite to Redis + Caffeine
+App -[#blue]-> Caffeine : keep Caffeine\nin sync on write
+Redis -[#blue]-> Channel : publish invalidation
+
+' === INVALIDATION ===
+Channel -[#orange,bold]-> PubSub : SUBSCRIBE
+PubSub -[#orange,bold]-> Caffeine : evict(key)
+Redis -[#orange,bold]-> CSC : SERVER INVALIDATION\n(CLIENT TRACKING)
+
+' === CROSS-INSTANCE ===
+AppB -[#blue]-> Redis : write/evict
+Redis -[#blue]-> Channel
+
+legend bottom
+    |= Scenario |= Flow |= Network to Redis? |= Network to DB? |
+    | GET → CSC HIT | App → Jedis → CSC returns | **No** | No |
+    | GET → CSC MISS, Redis HIT | App → Jedis → Redis → populate CSC | **Yes (1 call)** | No |
+    | GET → Redis MISS | App → Jedis → Redis → DB → populate Redis+CSC | Yes | **Yes** |
+    | GET → Redis DOWN, Caffeine HIT | App → Circuit Open → Caffeine returns | **No (skipped)** | No |
+    | GET → Redis DOWN, Caffeine MISS | App → Circuit Open → Caffeine MISS → DB | **No (skipped)** | **Yes** |
+end legend
+
+@enduml

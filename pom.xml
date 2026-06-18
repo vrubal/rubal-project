@@ -14,6 +14,7 @@
 		<module>transformers</module>
         <module>juno</module>
         <module>vrubal-kraft</module>
+		<module>cache</module>
     </modules>
 	<groupId>com.rubal.change</groupId>
 	<artifactId>rubal-project</artifactId>

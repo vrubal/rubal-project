@@ -1,0 +1,175 @@
+@startuml
+title Cache Sequence Diagrams\nRedis (Primary) + Client-Side Cache (CSC)
+
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 200
+
+participant "Studio\n(External Service)" as Studio #FFCDD2
+participant "Service" as Svc #E8EAF6
+participant "Redis CSC\n(JVM-local)" as CSC #E3F2FD
+participant "Cache Management\nService" as CMS #FFF9C4
+participant "Redis\nServer" as Redis #FFF3E0
+database "Database" as DB #F3E5F5
+
+== **Scenario 1: Cache Populate (Cold Start / Cache Miss)** ==
+
+Svc -> CSC : GET(key)
+activate CSC
+CSC -> CSC : lookup local cache
+CSC --> Svc : **CSC MISS**
+deactivate CSC
+
+Svc -> Redis : GET(key) [network call]
+activate Redis
+Redis --> Svc : **Redis MISS**
+deactivate Redis
+
+Svc -> DB : query(key)
+activate DB
+DB --> Svc : data
+deactivate DB
+
+Svc -> Redis : SET(key, data, TTL)
+activate Redis
+Redis --> Svc : OK
+deactivate Redis
+
+note over CSC : CSC auto-populated\nvia CLIENT TRACKING\non SET/GET response
+
+note over Svc
+    **Result:** Key now cached in:
+    • Redis Server (primary)
+    • Redis CSC (JVM-local, auto)
+end note
+
+== **Scenario 2: Cache Hit (CSC Hit — Zero Network)** ==
+
+Svc -> CSC : GET(key)
+activate CSC
+CSC -> CSC : lookup local cache
+CSC --> Svc : **CSC HIT** ✓\nreturn data locally
+deactivate CSC
+
+note over CSC : No network call to Redis.\nServed entirely from JVM.
+
+note over Svc
+    **Result:** Returned from CSC
+    • **0 network calls**
+    • Fastest path after cold start
+end note
+
+== **Scenario 3: CSC Miss, Redis Hit** ==
+
+Svc -> CSC : GET(key)
+activate CSC
+CSC -> CSC : lookup local cache
+CSC --> Svc : **CSC MISS**\n(expired or invalidated)
+deactivate CSC
+
+Svc -> Redis : GET(key) [network call]
+activate Redis
+Redis --> Svc : **Redis HIT** ✓ data
+deactivate Redis
+
+note over CSC : CSC auto-populated\nfrom GET response
+
+note over Svc
+    **Result:** Returned from Redis
+    • **1 network call**
+    • CSC re-populated for next read
+end note
+
+== **Scenario 4: Studio Updates DB → Cache Management Polls DB → Invalidates Redis → CSC Invalidated** ==
+
+Studio -> DB : UPDATE record(key)
+activate DB
+DB --> Studio : OK
+deactivate DB
+
+note over DB : Record updated in DB.\nChange tracked via\ntimestamp / flag / changelog.
+
+CMS -> DB : poll for changes\n(scheduled interval)
+activate CMS
+activate DB
+DB --> CMS : changed keys\n(includes key updated by Studio)
+deactivate DB
+
+note over CMS : Cache Management Service\ndetects stale cache entries\nvia DB polling
+
+CMS -> Redis : DEL(key)
+activate Redis
+Redis --> CMS : OK (key removed)
+deactivate CMS
+
+note over Redis #FFCDD2 : Key deleted from Redis.\nCLIENT TRACKING triggers\ninvalidation to all\ntracking clients.
+
+Redis -[#red]> CSC : INVALIDATE(key)\nvia CLIENT TRACKING\nREDIRECT
+deactivate Redis
+
+activate CSC
+CSC -> CSC : evict(key) from\nlocal cache
+deactivate CSC
+
+note over CSC : CSC entry for key\nis now removed
+
+Svc -> CSC : GET(key) [next read]
+activate CSC
+CSC -> CSC : lookup → **CSC MISS**
+CSC --> Svc : MISS
+deactivate CSC
+
+Svc -> Redis : GET(key) [network call]
+activate Redis
+Redis --> Svc : **Redis MISS**\n(key was deleted)
+deactivate Redis
+
+Svc -> DB : query(key)
+activate DB
+DB --> Svc : updated data\n(Studio's changes)
+deactivate DB
+
+Svc -> Redis : SET(key, data, TTL)
+activate Redis
+Redis --> Svc : OK
+deactivate Redis
+
+note over CSC : CSC auto-populated\nwith fresh data
+
+note over Svc
+    **Result:** Full invalidation cycle:
+    • Studio updated DB
+    • Cache Mgmt polled DB, detected change
+    • Cache Mgmt removed key from Redis
+    • Redis pushed INVALIDATE → CSC evicted
+    • Next read fetched fresh data from DB
+    • Redis + CSC re-populated with new value
+end note
+
+== **Scenario 5: Redis Down — DB Fallback** ==
+
+Svc -> CSC : GET(key)
+activate CSC
+CSC -> Redis : GET(key) [network call]
+activate Redis
+Redis --> CSC !! : **Connection Failed**\nJedisConnectionException
+deactivate Redis
+CSC --> Svc : **FAILURE**
+deactivate CSC
+
+Svc -> DB : query(key)
+activate DB
+DB --> Svc : data
+deactivate DB
+
+note over Svc
+    **Result:** Served from DB
+    • Redis unavailable
+    • Data returned directly from DB
+    • No local cache populated
+      (Redis needed for CSC tracking)
+end note
+
+@enduml

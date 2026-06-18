@@ -89,6 +89,8 @@ public class CollectorsDemo {
                 = new ArrayList<>(Arrays.asList(1, 1, 2, 3, 3, 3, 4, 5, 6, 6, 6, 7, 8));
 
         numbersList.stream().sorted(Comparator.naturalOrder());
+        Map<Integer, Long> collect6 = numbersList.stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        System.out.println("Collect6:"+collect6);
         Map<Integer, Integer> elementCountMap = numbersList.stream()
                 .collect(Collectors.toMap(Function.identity(), v -> 1, Integer::sum))
                 .entrySet().stream().filter(e->e.getValue()==  1)
@@ -129,15 +131,15 @@ public class CollectorsDemo {
         employees.add(new Person("name", 9, "Mumbai" ));
         Comparator<Employee> byHeight = Comparator.comparing(Employee::getHeight);
         Map<String, Integer> sumByCity = employees.stream()
-                .collect(Collectors.groupingBy(Person::getCity,
-                        Collectors.summingInt(Person::getHeight)));
+
+                .collect(Collectors.groupingBy(Person::getCity, Collectors.summingInt(Person::getHeight)));
 
         System.out.println("Sum of all heieght in CITY");
         System.out.println(sumByCity);
 
         Map<String, Optional<Person>> maxHeightByCity = employees.stream()
                 .collect(Collectors.groupingBy(Person::getCity,
-                        Collectors.maxBy(Comparator.comparing(Person::getHeight))));
+                        Collectors.maxBy(Comparator.comparingInt(Person::getHeight))));
         System.out.println("Max Height by city");
         System.out.println(maxHeightByCity);
 
@@ -149,6 +151,8 @@ public class CollectorsDemo {
                 .collect(Collectors.groupingBy(Person::getCity, Collectors.counting()));
         System.out.println("Count By City");
         System.out.println(countByCity);
+
+
     }
 
 }

@@ -1,0 +1,188 @@
+@startuml
+title Cache Sequence Diagrams\nRedis (Primary) + CSC (Local) + Caffeine (Fallback)
+
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 200
+
+participant "Service" as Svc #E8EAF6
+participant "Circuit\nBreaker" as CB #FFF9C4
+participant "Redis CSC\n(JVM-local)" as CSC #E3F2FD
+participant "Redis\nServer" as Redis #FFF3E0
+participant "Caffeine\n(In-Memory)" as Caff #E8F5E9
+database "Database" as DB #F3E5F5
+
+== **Scenario 1: Cache Populate (Cold Start / Cache Miss)** ==
+
+Svc -> CB : get(key)
+activate CB
+CB -> CSC : GET(key)
+activate CSC
+CSC -> CSC : lookup local cache
+CSC --> CB : **CSC MISS**
+deactivate CSC
+
+CB -> Redis : GET(key) [network call]
+activate Redis
+Redis --> CB : **Redis MISS**
+deactivate Redis
+
+CB -> DB : query(key)
+activate DB
+DB --> CB : data
+deactivate DB
+
+CB -> Redis : SET(key, data, TTL)
+activate Redis
+Redis --> CB : OK
+deactivate Redis
+
+note over CSC : CSC auto-populated\nvia CLIENT TRACKING\non SET/GET response
+
+CB -> Caff : put(key, data)
+activate Caff
+Caff --> CB : OK
+deactivate Caff
+
+CB --> Svc : data
+deactivate CB
+
+note over Svc
+    **Result:** Key now cached in:
+    • Redis Server (primary)
+    • Redis CSC (JVM-local, auto)
+    • Caffeine (in-memory fallback)
+end note
+
+== **Scenario 2: Cache Hit (CSC Hit — Zero Network)** ==
+
+Svc -> CB : get(key)
+activate CB
+CB -> CSC : GET(key)
+activate CSC
+CSC -> CSC : lookup local cache
+CSC --> CB : **CSC HIT** ✓\nreturn data locally
+deactivate CSC
+
+note over CSC : No network call to Redis.\nServed entirely from JVM.
+
+CB --> Svc : data
+deactivate CB
+
+note over Svc
+    **Result:** Returned from CSC
+    • **0 network calls**
+    • Fastest path after cold start
+end note
+
+== **Scenario 3: Redis Down — Caffeine Miss → DB Fallback** ==
+
+Svc -> CB : get(key)
+activate CB
+
+CB -> CSC : GET(key)
+activate CSC
+CSC -> Redis : GET(key) [network call]
+activate Redis
+Redis --> CSC !! : **Connection Failed**\nJedisConnectionException
+deactivate Redis
+CSC --> CB : **FAILURE**
+deactivate CSC
+
+note over CB #FFF176 : Circuit Breaker **OPENS**\nRedis marked unavailable
+
+CB -> Caff : get(key)
+activate Caff
+Caff -> Caff : lookup heap cache
+Caff --> CB : **Caffeine MISS**
+deactivate Caff
+
+CB -> DB : query(key)
+activate DB
+DB --> CB : data
+deactivate DB
+
+CB -> Caff : put(key, data)
+activate Caff
+Caff --> CB : OK
+deactivate Caff
+
+CB --> Svc : data
+deactivate CB
+
+note over Svc
+    **Result:** Served from DB
+    • Caffeine populated for next call
+    • Redis skipped (circuit open)
+    • Degraded mode active
+end note
+
+== **Scenario 4: Redis Down — Caffeine Hit (Degraded Mode)** ==
+
+Svc -> CB : get(key)
+activate CB
+
+note over CB #FFF176 : Circuit still **OPEN**\nSkip Redis entirely
+
+CB -> Caff : get(key)
+activate Caff
+Caff -> Caff : lookup heap cache
+Caff --> CB : **Caffeine HIT** ✓\nreturn cached data
+deactivate Caff
+
+CB --> Svc : data (possibly stale)
+deactivate CB
+
+note over Svc
+    **Result:** Served from Caffeine
+    • **0 network calls**
+    • Data may be stale
+    • App remains responsive
+    • Circuit will probe Redis
+      periodically (HALF_OPEN)
+end note
+
+== **Scenario 5: Redis Comes Back Online — Clear Caffeine** ==
+
+note over CB #C8E6C9 : Circuit transitions to **HALF_OPEN**\nProbe Redis with test call
+
+Svc -> CB : get(key) [or scheduled probe]
+activate CB
+
+CB -> CSC : GET(key)
+activate CSC
+CSC -> Redis : GET(key) [probe]
+activate Redis
+Redis --> CSC : **SUCCESS** ✓\nRedis is back
+deactivate Redis
+CSC --> CB : data
+deactivate CSC
+
+note over CB #C8E6C9 : Circuit transitions to **CLOSED**\nRedis marked available
+
+CB -> Caff : **clear()** ☐\nevict ALL entries
+activate Caff
+note over Caff #FFCDD2
+    Caffeine data may be **stale**
+    (written during Redis outage
+    or missed invalidation events).
+    Full clear ensures consistency
+    with Redis as source of truth.
+end note
+Caff --> CB : cleared
+deactivate Caff
+
+CB --> Svc : data (fresh from Redis)
+deactivate CB
+
+note over Svc
+    **Result:** Redis recovered
+    • Circuit **CLOSED** — normal flow resumes
+    • Caffeine **cleared** — no stale data
+    • CSC re-populates automatically
+    • Subsequent reads follow Scenario 1 or 2
+end note
+
+@enduml
